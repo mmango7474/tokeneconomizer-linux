@@ -9,13 +9,13 @@ and Pi behavior instead of replacing them with an incomplete native implementati
 
 Requirements: Linux x86-64, Python 3.10 or newer, and a supported agent installed and signed in.
 The included scanner is a static musl binary; it does not require Rust or a specific glibc.
-Download the release from [alinaos-org/tokeneconomizer-linux](https://github.com/alinaos-org/tokeneconomizer-linux/releases/latest)
+Download the release from [mmango7474/tokeneconomizer-linux](https://github.com/mmango7474/tokeneconomizer-linux/releases/latest)
 and extract it in a permanent location:
 
 ```sh
 mkdir -p "$HOME/.local/share/tokeneconomizer-linux"
 cd "$HOME/.local/share/tokeneconomizer-linux"
-base=https://github.com/alinaos-org/tokeneconomizer-linux/releases/download/v0.1.0-linux.1
+base=https://github.com/mmango7474/tokeneconomizer-linux/releases/download/v0.1.0-linux.1
 curl -fLO "$base/tokeneconomizer-linux-marketplace.tar.gz"
 curl -fLO "$base/SHA256SUMS"
 grep '  tokeneconomizer-linux-marketplace.tar.gz$' SHA256SUMS | sha256sum -c -
@@ -48,7 +48,7 @@ Its existing live integration is retained; history import currently supports Cla
 On Linux, with Python 3.10+, Rust/Cargo and a C linker:
 
 ```sh
-git clone https://github.com/alinaos-org/tokeneconomizer-linux.git
+git clone https://github.com/mmango7474/tokeneconomizer-linux.git
 cd tokeneconomizer-linux
 sh scripts/build_linux.sh
 ```

@@ -1,6 +1,6 @@
 # TokenEconomizer Linux: history warm-start and Rust discovery
 
-[Download the Linux release](https://github.com/alinaos-org/tokeneconomizer-linux/releases/latest)
+[Download the Linux release](https://github.com/mmango7474/tokeneconomizer-linux/releases/latest)
 · [Installation guide](docs/LINUX.md) · [Validation](docs/VALIDATION.md)
 
 This fork preserves Microsoft's complete Python plugin and adds a native Rust history scanner,
