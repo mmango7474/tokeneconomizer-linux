@@ -699,6 +699,16 @@ def cmd_doctor(args):
     return 0 if ok else 1
 
 
+def cmd_warmstart(args):
+    from .history import warmstart
+    # A preview must not settle/migrate state or spawn background work.
+    ctx = LiveContext.build(hosts.HOSTS[args.host](), args.cwd, settle=False)
+    result = warmstart(ctx, root=args.root, limit=args.limit, days=args.days,
+                       dry_run=args.dry_run, paid=args.paid, exclude=args.exclude)
+    print(json.dumps(result, indent=2))
+    return 1 if result["failed"] else 0
+
+
 def build_parser():
     ap = argparse.ArgumentParser(prog="te", description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -717,6 +727,14 @@ def build_parser():
     p = add("status")
     p.add_argument("--json", action="store_true")
     p.set_defaults(fn=cmd_status)
+    p = add("warmstart")
+    p.add_argument("--root", help="history directory (default: host's local session directory)")
+    p.add_argument("--limit", type=int, default=100)
+    p.add_argument("--days", type=int, default=30)
+    p.add_argument("--dry-run", action="store_true")
+    p.add_argument("--paid", action="store_true", help="allow the fact proposer to call a model")
+    p.add_argument("--exclude", action="append", default=[])
+    p.set_defaults(fn=cmd_warmstart)
     add("microskills", "facts").set_defaults(fn=cmd_microskills)
     p = add("toolprune", "untool")
     p.add_argument("action", nargs="?", default="show",
@@ -780,7 +798,8 @@ def main(argv=None):
         return args.fn(args) or 0
     finally:
         from .paths import secure_root
-        secure_root()
+        if not (args.cmd == "warmstart" and args.dry_run):
+            secure_root()
 
 
 if __name__ == "__main__":

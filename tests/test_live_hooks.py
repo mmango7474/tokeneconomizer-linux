@@ -141,11 +141,11 @@ def test_a_learned_fact_reaches_the_next_session_and_is_announced_once(env, repo
     assert starts[5]["hookSpecificOutput"]["additionalContext"] == ctx
 
 
-def test_micro_skills_is_off_by_default_and_learns_nothing(env, repo, tmp_path, monkeypatch,
+def test_micro_skills_explicitly_off_learns_nothing(env, repo, tmp_path, monkeypatch,
                                                            capsys):
-    """The sessions that teach the fact above leave nothing behind unless it is turned on."""
+    """The explicit opt-out still prevents learning despite the fork's enabled default."""
     from tokeneconomizer.plugin import cli
-    default = {k: v for k, v in env.items() if k != "TE_MICROSKILLS"}
+    default = dict(env, TE_MICROSKILLS="off")
     starts = [run_session(default, repo, f"s{i}",
                           trap_session(str(tmp_path / f"s{i}.jsonl"), repo, i))
               for i in range(6)]

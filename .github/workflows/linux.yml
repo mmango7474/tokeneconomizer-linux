@@ -1,0 +1,24 @@
+name: Linux
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+          targets: x86_64-unknown-linux-musl
+      - run: python -m pip install pytest
+      - run: cargo fmt --manifest-path native/Cargo.toml --check
+      - run: cargo clippy --manifest-path native/Cargo.toml --locked --all-targets -- -D warnings
+      - run: cargo test --manifest-path native/Cargo.toml --locked
+      - run: TE_RUST_TARGET=x86_64-unknown-linux-musl sh scripts/build_linux.sh
+      - run: python -m pytest tests experiments/tests
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tokeneconomizer-linux
+          path: dist/tokeneconomizer-linux-marketplace.tar.gz

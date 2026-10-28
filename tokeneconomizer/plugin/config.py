@@ -138,7 +138,8 @@ def _threshold_name(key):
 class LiveConfig:
     enabled: bool = True
     mode: str = "auto"
-    microskills: str = "off"
+    microskills: str = "envfacts+distiller"
+    warmstart: bool = True
     microskills_max_facts: int = 4
     microskills_max_tokens: int = 150
     microskills_propose_every: int = 3
@@ -242,6 +243,7 @@ class LiveConfig:
 
 # Environment variables, old names first so that a new name set alongside its old one wins.
 _ENV = {"TE_MODE": "mode", "TE_SHADOW": "shadow",
+        "TE_WARMSTART": "warmstart",
         "TE_PAID_MODEL": "paid_model", "TE_VOCABULARY": "vocabulary",
         "TE_INJECT": "microskills", "TE_INJECT_MAX_FACTS": "microskills_max_facts",
         "TE_INJECT_MAX_TOKENS": "microskills_max_tokens",

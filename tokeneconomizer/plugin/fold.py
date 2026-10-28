@@ -63,7 +63,7 @@ def _run_dir(workdir, trace_path):
     return run
 
 
-def _fold_microskills(ctx, adapter, run_dir, session_id, injected=None):
+def _fold_microskills(ctx, adapter, run_dir, session_id, injected=None, render_profile=None):
     profile = ctx.config.microskills
     if profile == "off":
         return None
@@ -84,10 +84,16 @@ def _fold_microskills(ctx, adapter, run_dir, session_id, injected=None):
     if injected is not None:
         task["injected_ids"] = injected
     opt_tokens, reason = stage.after_task(task, {}, run_dir, srow)
+    if render_profile and render_profile != profile:
+        # A free historical fold must not hide an existing paid manual. Load it only
+        # for rendering; never update it or obtain a model runner here.
+        icfg.profile = render_profile
+        stage = PrefixStage(icfg, ctx.repo.label, ctx.mech_dir, False, runner=None,
+                            optimizer_model="agent", adapter=adapter, agent=ctx.host.name)
     rendered = stage.render() or ""
     prior = ctx.store.read("injection.json") or {}
     ctx.store.write("injection.json", {
-        "profile": profile, "reason": reason, "rendered": rendered,
+        "profile": render_profile or profile, "reason": reason, "rendered": rendered,
         "rendered_ids": stage.injected_ids(),
         "facts": srow.get("manual_facts"), "updated": time.time(),
         "sessions": int(prior.get("sessions", 0)) + 1})
@@ -355,7 +361,8 @@ def schedule_pending(ctx):
 CODEX_HIGH_RISK = frozenset({"image_media"})
 
 
-def fold_session(ctx, session_id, transcript_path=None):
+def fold_session(ctx, session_id, transcript_path=None, source_transcript=None, historical=False,
+                 render_profile=None):
     """Fold one finished session. Returns the ledger record, or None if already folded."""
     sess_name = os.path.join("sessions", f"{session_id}.json")
     with ctx.store.locked("fold", timeout=FOLD_LOCK_WAIT_S) as got:
@@ -370,6 +377,8 @@ def fold_session(ctx, session_id, transcript_path=None):
                   "repo": ctx.repo.label, "folded_at": time.time(),
                   "started": sess.get("started"), "ended": sess.get("ended"),
                   "shadow": ctx.config.shadow}
+        if historical:
+            record["source"] = "history"
         workdir = tempfile.mkdtemp(prefix="te-fold-")
         try:
             trace_path = ctx.host.mechanism_trace(transcript, workdir) if transcript else None
@@ -380,13 +389,15 @@ def fold_session(ctx, session_id, transcript_path=None):
             record["prompts"] = prompts
             if not trace_path:
                 record["error"] = "transcript unreadable"
+                return record  # Retry later; an unavailable log is not a learned session.
             else:
                 run_dir = _run_dir(workdir, trace_path)
                 adapter = LiveAdapter(ctx.host, ctx.repo.root, vocabulary=ctx.config.vocabulary,
                                       catalog=load_catalog(ctx.root, ctx.host.name))
                 with ctx.store.locked("mechanisms"):
                     inj = _fold_microskills(ctx, adapter, run_dir, session_id,
-                                            injected=sess.get("injected_ids"))
+                                            injected=[] if historical else sess.get("injected_ids"),
+                                            render_profile=render_profile)
                     # A session that ran no prompt is no evidence about the tools.
                     unt = None if prompts == 0 else _fold_toolprune(
                         ctx, adapter, run_dir, session_id, transcript=transcript,
@@ -414,7 +425,8 @@ def fold_session(ctx, session_id, transcript_path=None):
                     "spiral_judge_tokens": float(sess.get("judge_tokens", 0) or 0),
                     "spiral_nudge_writer_tokens": float(sess.get("writer_tokens", 0) or 0)}})
             ctx.store.append("ledger.jsonl", record)
-            folded[session_id] = {"at": time.time(), "transcript": transcript}
+            folded[session_id] = {"at": time.time(),
+                                  "transcript": source_transcript or transcript}
             ctx.store.write("folded.json", folded)
             if sess:
                 sess["folded"] = True

@@ -149,7 +149,10 @@ def test_te_fold_for_a_session_uses_its_pin(tmp_path, env, monkeypatch):
     for k, v in env.items():
         monkeypatch.setenv(k, v)
     call(env, {"hook_event_name": "SessionStart", "session_id": "s1", "cwd": a}, "claude")
-    call(env, {"hook_event_name": "SessionEnd", "session_id": "s1", "cwd": b}, "claude")
+    transcript = tmp_path / "session.jsonl"
+    transcript.write_text('{"type":"user","message":{"role":"user","content":"hello"}}\n')
+    call(env, {"hook_event_name": "SessionEnd", "session_id": "s1", "cwd": b,
+               "transcript_path": str(transcript)}, "claude")
     ka = paths.repo_identity(a, env).key
     assert "s1" in (state(env, ka).read("folded.json") or {})
     assert cli.main(["--host", "claude", "--cwd", b, "fold", "--session", "s1"]) == 0

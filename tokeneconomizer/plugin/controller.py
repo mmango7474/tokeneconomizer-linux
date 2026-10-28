@@ -169,6 +169,8 @@ class LiveController:
         repos.note_repo(self.ctx.root, self.ctx.repo)
         repos.prune_pins(self.ctx.root, self.host.name)
         repos.start_migration(self.ctx)
+        from .history import spawn_warmstart
+        spawn_warmstart(self.ctx, self.sid)
         fold.spawn_fold(self.ctx, fold.pending_sessions(self.ctx, exclude=(self.sid,)))
         return merge_outputs(*outputs)
 

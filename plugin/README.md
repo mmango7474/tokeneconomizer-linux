@@ -291,7 +291,7 @@ applied to the ones that follow. Facts and the deny list take effect when a sess
 loop guard acts during a turn. Each agent learns on its own (what Claude Code learned in a
 repository is not used by Codex there), while settings are shared by every agent.
 
-- **Facts** (once you turn micro-skills on; it is off by default). Two sources propose them, in
+- **Facts** (micro-skills are on by default in the Linux fork). Two sources propose them, in
   any language or toolchain. The first needs no model call: the same environment failure in a few
   sessions (a tool, interpreter, build or test command that fails as typed and works spelled
   another way). The second runs every `microskills_propose_every` sessions (3 by default): a model
@@ -403,7 +403,7 @@ and are shared by every agent working in it. The examples use Claude Code's form
 
 | Mechanism | Key | `on` means | Other values |
 |---|---|---|---|
-| Micro-skills (off by default) | `microskills` | `envfacts+distiller`: facts found without model calls, plus a model proposing facts every `microskills_propose_every` sessions | `off`; `envfacts`: only the facts found without model calls; `distiller`: only the proposer |
+| Micro-skills (on by default in this fork) | `microskills` | `envfacts+distiller`: facts found without model calls, plus a model proposing facts every `microskills_propose_every` sessions | `off`; `envfacts`: only the facts found without model calls; `distiller`: only the proposer |
 | Tool pruning | `toolprune` | `auto`: applied without asking once your sessions have been idle for `toolprune_quiet_minutes` (or a day after it formed), from the next session, which announces it | `off`; `propose`: only proposed, applied when you run `toolprune apply` |
 | Loop guard | `loopguard` | `nudge`: a judge model decides whether a looping turn is stuck; if so, up to `loopguard_nudges` mid-turn redirects, then a notice to you if the turn is still stuck | `off` (no judge either); `stop` is read as `nudge`, with a warning |
 

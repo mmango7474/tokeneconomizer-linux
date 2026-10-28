@@ -1,4 +1,33 @@
-# TokenEconomizer: Experience-Driven Black-Box Cost Control for Coding Agents
+# TokenEconomizer Linux: history warm-start and Rust discovery
+
+[Download the Linux release](https://github.com/alinaos-org/tokeneconomizer-linux/releases/latest)
+· [Installation guide](docs/LINUX.md) · [Validation](docs/VALIDATION.md)
+
+This fork preserves Microsoft's complete Python plugin and adds a native Rust history scanner,
+automatic warm-start from existing Claude Code and Codex sessions, and **micro-skills enabled
+by default** (`envfacts+distiller`). Linux was already supported upstream; this version improves
+the cold start and provides a tested Linux package rather than rewriting the agent integrations.
+
+**Start here: [Linux installation and commands](docs/LINUX.md).** Use this checkout or its built
+marketplace, not a fresh clone of the upstream URL in the original documentation below.
+Build with `sh scripts/build_linux.sh` (Python 3.10+, Rust/Cargo, and a C linker), or extract
+`dist/tokeneconomizer-linux-marketplace.tar.gz` on Linux x86-64 and install its marketplace.
+The supplied binary is static; Python remains required for the full plugin runtime.
+
+The AI Labs video describes learning from pre-install session history. This fork implements
+that idea independently; see [investigation and attribution](docs/INVESTIGATION.md). Historical
+imports use free environment-fact learning by default, preserve existing learned facts, and
+do not invent evidence that today's tools were available in old sessions. The original
+tool-pruning and loop-guard mechanisms remain available for new sessions. No claimed video
+token-savings percentage has been independently reproduced here.
+
+Other changes: one-pass call/CWD parsing with explicit UTF-8, retriable missing transcripts,
+bounded and deduplicated history imports, Linux CI, and source packaging that preserves
+symlinks even when exported from a Windows checkout. Existing explicit settings still win.
+New-session micro-skills include the model proposer; use `TE_MICROSKILLS=envfacts` for the
+free-only mode or `TE_MICROSKILLS=off` to opt out. `TE_WARMSTART=off` disables auto-import.
+
+## Original project background
 
 <p align="center">
   Aaron J. Li<sup>1</sup>,
@@ -221,10 +250,10 @@ Inside an agent, a command costs one model turn; from a terminal it is free. The
 
 ## Settings
 
-Tool pruning and the loop guard are on by default; with these defaults, the plugin calls a model
-only when a turn shows signs of looping: the judge, and the redirect it writes if it finds the
-turn stuck. Micro-skills is off by default, because its proposer adds model calls and how much it
-saves depends on the repository and the work you do there. Each mechanism has its own switch
+This fork enables micro-skills, tool pruning and the loop guard by default. New sessions can
+call the micro-skills proposer as well as the loop judge; the benefit depends on the repository
+and the work you do there. Historical warm-start uses free facts unless `--paid` is supplied.
+Each mechanism has its own switch
 (`microskills`, `toolprune`, `loopguard`) that takes `on` or `off`, and the italic letters above
 are these settings:
 

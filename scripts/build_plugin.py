@@ -41,6 +41,16 @@ def build(out):
                     ignore=shutil.ignore_patterns("__pycache__", "*.pyc", ".pytest_cache", "lib"))
     shutil.copytree(os.path.join(REPO, "tokeneconomizer"),
                     os.path.join(plugin_out, "lib", "tokeneconomizer"), ignore=IGNORE)
+    native = os.path.join(REPO, "native", "bin", "te-history")
+    if os.path.isfile(native):
+        dest = os.path.join(plugin_out, "lib", "bin")
+        os.makedirs(dest, exist_ok=True)
+        shutil.copy2(native, os.path.join(dest, "te-history"))
+        os.chmod(os.path.join(dest, "te-history"), 0o755)
+        notices = os.path.join(REPO, "native", "licenses")
+        if os.path.isdir(notices):
+            shutil.copytree(notices, os.path.join(dest, "licenses"), dirs_exist_ok=True)
+    shutil.copy2(os.path.join(REPO, "LICENSE"), os.path.join(plugin_out, "LICENSE"))
     with open(os.path.join(REPO, ".claude-plugin", "marketplace.json"), encoding="utf-8") as fh:
         market = json.load(fh)
     for entry in market.get("plugins", []):

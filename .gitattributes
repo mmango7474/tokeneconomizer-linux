@@ -1,0 +1,7 @@
+* text=auto
+*.sh text eol=lf
+plugin/scripts/te text eol=lf
+plugin/scripts/te-hook text eol=lf
+*.py text eol=lf
+*.rs text eol=lf
+*.toml text eol=lf
